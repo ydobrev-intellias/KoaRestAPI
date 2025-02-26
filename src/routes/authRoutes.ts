@@ -15,7 +15,7 @@ router.post("/signin", async (ctx: Context) => {
   await signIn(ctx);
 });
 
-router.get("/signout", authMiddleware, async (ctx: Context) => {
+router.post("/signout", authMiddleware, async (ctx: Context) => {
   await signOut(ctx);
 });
 
