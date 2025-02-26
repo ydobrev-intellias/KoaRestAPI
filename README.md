@@ -48,3 +48,9 @@ A lightweight REST API built with Koa.js for user authentication and management.
 | GET    | `/users/:id` | Get a user by ID                               |
 | PUT    | `/users/:id` | Update user details (e.g., username, password) |
 | DELETE | `/users/:id` | Delete a user                                  |
+
+### Profile (Requires authentication)
+
+| Method | Endpoint   | Description                                 |
+| ------ | ---------- | ------------------------------------------- |
+| GET    | `/profile` | Get profile of currently authenticated user |
