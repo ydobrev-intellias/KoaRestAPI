@@ -26,9 +26,16 @@ A lightweight REST API built with Koa.js for user authentication and management.
    ```
 
 3. Start the server:
+
    ```sh
    npm run start
    ```
+
+4. **Pre-seeded User**:  
+   For testing purposes, a pre-seeded user is available with the following credentials:
+   - **Username**: `user`
+   - **Password**: `123`  
+     You can use these credentials to sign in and try out the endpoints without needing to sign up.
 
 ## API Endpoints
 
