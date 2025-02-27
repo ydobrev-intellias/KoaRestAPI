@@ -27,7 +27,7 @@ A lightweight REST API built with Koa.js for user authentication and management.
 
 3. Start the server:
    ```sh
-   npm run dev
+   npm run start
    ```
 
 ## API Endpoints

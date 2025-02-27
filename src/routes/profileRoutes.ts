@@ -1,16 +1,15 @@
 import Router from "koa-router";
 import authMiddleware from "../middlewares/authMiddleware";
 import { Context } from "koa";
+import { getProfile } from "../services/profileService";
 
 const router = new Router({
   prefix: "/profile",
 });
 
-router.get("/", authMiddleware, (ctx: Context) => {
-  ctx.body = {
-    username: ctx.state.user.username,
-    id: ctx.state.user.id,
-  };
+// Get profile
+router.get("/", authMiddleware, async (ctx: Context) => {
+  await getProfile(ctx);
 });
 
 export default router;

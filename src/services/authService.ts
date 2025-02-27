@@ -2,8 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Context } from "koa";
 import { readData, writeData } from "./fileService";
-import { getUserByUsername } from "./userService";
 import { randomUUID } from "crypto";
+import { getUserByUsername } from "./userService";
 
 const SECRET_KEY = process.env.SECRET ?? "your-secret-key";
 
@@ -21,8 +21,9 @@ export const signUp = async (ctx: Context) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const users = await readData();
     const generatedID = randomUUID();
+    const user = { id: generatedID, username, password: hashedPassword };
 
-    users.push({ username, password: hashedPassword, id: generatedID });
+    users.push(user);
     await writeData(users);
 
     const token = jwt.sign({ id: generatedID, username }, SECRET_KEY, {
@@ -34,7 +35,7 @@ export const signUp = async (ctx: Context) => {
     });
 
     ctx.status = 201;
-    ctx.body = { message: "User registered successfully" };
+    ctx.body = { message: "User registered successfully", user };
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: "Failed to register user" };
@@ -61,7 +62,7 @@ export const signIn = async (ctx: Context) => {
       httpOnly: true,
       maxAge: 1800000,
     });
-    ctx.body = { message: "Login successful" };
+    ctx.body = { message: "Login successful", user };
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: "Failed to sign in" };

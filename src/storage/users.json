@@ -1,12 +1,7 @@
 [
   {
-    "username": "gosho",
-    "password": "$2b$10$evL3C8irIvAwac6jPXg/DOH212zxtCaZ2EcdSLo3Fe1Ou4u/XGzU6",
-    "id": "6779b7e5-39a4-4831-9f99-1a397288b1c7"
-  },
-  {
-    "username": "kalata",
-    "password": "$2b$10$rFs9WNItXtPzEZpeinIb4OvxZAtr8yrWHLjY9b1As4JHfUYS9erYq",
-    "id": "010503bc-3092-412e-a384-58f2064289d6"
+    "id": "979568fd-5af6-440e-aa9a-8d349833363b",
+    "username": "yavor2",
+    "password": "$2b$10$6Vh7IQaw5KMLejgJNPkLjOt3tb46l/AGc/za489xuDEzWDgELMlVK"
   }
 ]
