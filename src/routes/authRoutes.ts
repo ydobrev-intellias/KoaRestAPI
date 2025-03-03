@@ -2,8 +2,9 @@ import { Context } from "koa";
 import { signIn, signOut, signUp } from "../services/authService";
 import Router from "koa-router";
 import authMiddleware from "../middlewares/authMiddleware";
-import { createUserSchema } from "../schemas";
+
 import { validateBody } from "../middlewares/validationMiddleware";
+import { createUserSchema } from "../validationSchemas/userSchemas";
 
 const router = new Router({
   prefix: "/auth",

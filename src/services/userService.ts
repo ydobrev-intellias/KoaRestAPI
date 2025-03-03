@@ -5,7 +5,7 @@ import { db } from "../db/db";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
 
-const SECRET_KEY = process.env.SECRET ?? "";
+const SECRET_KEY = process.env.SECRET ?? "secret";
 
 export const getUsers = async (ctx: Context) => {
   try {
@@ -75,11 +75,14 @@ export const updateUser = async (ctx: Context) => {
         maxAge: 1800000,
       });
     }
+    const { password: resultPassword, ...userWithoutPassword } = result;
+    const { password: updatedPassword, ...updatedUserWithoutPassword } =
+      updatedData;
 
     ctx.status = 200;
     ctx.body = {
       message: "User updated successfully",
-      user: { ...result, ...updatedData },
+      user: { ...userWithoutPassword, ...updatedUserWithoutPassword },
     };
   } catch (error) {
     console.error("Error updating user:", error);
@@ -92,11 +95,14 @@ export const getUserById = async (ctx: Context) => {
   const { id } = ctx.params;
 
   try {
-    const result = await db
-      .select({ id: users.id, username: users.username })
-      .from(users)
-      .where(eq(users.id, id));
-
+    const result = (
+      await db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1)
+    )[0];
+    if (!result) throw "user does not exist";
     ctx.status = 200;
     ctx.body = result;
   } catch (error) {
