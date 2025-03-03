@@ -13,27 +13,22 @@ import { updateUserSchema } from "../schemas";
 const router = new Router({ prefix: "/users" });
 
 // Get all users
-router.get("/", authMiddleware, async (ctx: Context) => {
+router.get("/", async (ctx: Context) => {
   await getUsers(ctx);
 });
 
 // Delete user
-router.delete("/:userId", authMiddleware, async (ctx: Context) => {
+router.delete("/:userId", async (ctx: Context) => {
   await deleteUser(ctx);
 });
 
 // Update user
-router.put(
-  "/:userId",
-  authMiddleware,
-  validateBody(updateUserSchema),
-  async (ctx: Context) => {
-    await updateUser(ctx);
-  }
-);
+router.put("/:userId", validateBody(updateUserSchema), async (ctx: Context) => {
+  await updateUser(ctx);
+});
 
 // Get user by ID
-router.get("/:id", authMiddleware, async (ctx: Context) => {
+router.get("/:id", async (ctx: Context) => {
   await getUserById(ctx);
 });
 
