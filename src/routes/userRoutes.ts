@@ -8,12 +8,12 @@ import {
 import authMiddleware from "../middlewares/authMiddleware";
 import { Context } from "koa";
 import { validateBody } from "../middlewares/validationMiddleware";
-import { updateUserSchema } from "../schemas";
+import { updateUserSchema } from "../validationSchemas/userSchemas";
 
 const router = new Router({ prefix: "/users" });
 
 // Get all users
-router.get("/", authMiddleware, async (ctx: Context) => {
+router.get("/", async (ctx: Context) => {
   await getUsers(ctx);
 });
 
@@ -23,7 +23,7 @@ router.delete("/:userId", authMiddleware, async (ctx: Context) => {
 });
 
 // Update user
-router.put(
+router.patch(
   "/:userId",
   authMiddleware,
   validateBody(updateUserSchema),
@@ -33,7 +33,7 @@ router.put(
 );
 
 // Get user by ID
-router.get("/:id", authMiddleware, async (ctx: Context) => {
+router.get("/:id", async (ctx: Context) => {
   await getUserById(ctx);
 });
 

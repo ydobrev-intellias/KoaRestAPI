@@ -1,19 +1,18 @@
-import { readData, writeData } from "./fileService";
 import bcrypt from "bcrypt";
-import User from "../types/User";
 import { Context } from "koa";
 import jwt from "jsonwebtoken";
-
-const SECRET_KEY = process.env.SECRET ?? "";
+import { db } from "../db/db";
+import { users } from "../db/schema";
+import { eq } from "drizzle-orm";
+import { config } from "../../config";
 
 export const getUsers = async (ctx: Context) => {
   try {
-    const users = await readData();
+    const result = await db
+      .select({ id: users.id, username: users.username })
+      .from(users);
     ctx.status = 200;
-    ctx.body = users.map((user: User) => ({
-      id: user.id,
-      username: user.username,
-    }));
+    ctx.body = result;
   } catch (error) {
     console.error("Error reading users:", error);
     ctx.status = 500;
@@ -25,17 +24,7 @@ export const deleteUser = async (ctx: Context) => {
   const { userId } = ctx.params;
 
   try {
-    const users = await readData();
-    const userIndex = users.findIndex((user: User) => user.id === userId);
-
-    if (userIndex === -1) {
-      ctx.status = 404;
-      ctx.body = { error: "User not found" };
-      return;
-    }
-
-    users.splice(userIndex, 1);
-    await writeData(users);
+    await db.delete(users).where(eq(users.id, userId));
 
     ctx.status = 200;
     ctx.body = { message: "User deleted successfully" };
@@ -51,50 +40,48 @@ export const updateUser = async (ctx: Context) => {
   const { username, password } = ctx.request.body;
 
   try {
-    const users = await readData();
-    const userIndex = users.findIndex((user: User) => user.id === userId);
+    const result = (
+      await db.select().from(users).where(eq(users.id, userId))
+    )[0];
 
-    if (userIndex === -1) {
-      ctx.status = 404;
-      ctx.body = { error: "User not found" };
-      return;
-    }
-
-    const user = users[userIndex];
     let userDataChanged = false;
+    const updatedData: { username?: string; password?: string } = {};
 
-    if (username && username !== user.username) {
-      user.username = username;
+    if (username && username !== result.username) {
+      updatedData.username = username;
       userDataChanged = true;
     }
 
     if (password) {
-      user.password = await bcrypt.hash(password, 10);
+      updatedData.password = await bcrypt.hash(password, 10);
+      userDataChanged = true;
     }
 
-    users[userIndex] = user;
-    await writeData(users);
-
     if (userDataChanged) {
+      await db.update(users).set(updatedData).where(eq(users.id, userId));
+
       const token = jwt.sign(
         {
-          id: user.id,
-          username: user.username,
+          id: userId,
+          username: updatedData.username || result.username,
         },
-        SECRET_KEY,
-        { expiresIn: "30m" }
+        config.secretKey,
+        { expiresIn: config.tokenExpiration }
       );
 
       ctx.cookies.set("token", token, {
         httpOnly: true,
-        maxAge: 1800000,
+        maxAge: config.cookieMaxAge,
       });
     }
+    const { password: resultPassword, ...userWithoutPassword } = result;
+    const { password: updatedPassword, ...updatedUserWithoutPassword } =
+      updatedData;
 
     ctx.status = 200;
     ctx.body = {
       message: "User updated successfully",
-      user: users[userIndex],
+      user: { ...userWithoutPassword, ...updatedUserWithoutPassword },
     };
   } catch (error) {
     console.error("Error updating user:", error);
@@ -107,17 +94,16 @@ export const getUserById = async (ctx: Context) => {
   const { id } = ctx.params;
 
   try {
-    const users = await readData();
-    const user = users.find((user: User) => user.id === id);
-
-    if (!user) {
-      ctx.status = 404;
-      ctx.body = { error: "User not found" };
-      return;
-    }
-
+    const result = (
+      await db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1)
+    )[0];
+    if (!result) throw "user does not exist";
     ctx.status = 200;
-    ctx.body = user;
+    ctx.body = result;
   } catch (error) {
     console.error("Error fetching user:", error);
     ctx.status = 500;
@@ -127,15 +113,13 @@ export const getUserById = async (ctx: Context) => {
 
 export const getUserByUsername = async (username: string) => {
   try {
-    const users = await readData();
-    const user = users.find((user: User) => user.username === username);
+    const result = (
+      await db.select().from(users).where(eq(users.username, username)).limit(1)
+    )[0];
 
-    if (!user) {
-      return null;
-    }
-    return user;
+    return result;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };

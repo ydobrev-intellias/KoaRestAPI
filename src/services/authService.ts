@@ -1,15 +1,14 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Context } from "koa";
-import { readData, writeData } from "./fileService";
-import { randomUUID } from "crypto";
 import { getUserByUsername } from "./userService";
-
-const SECRET_KEY = process.env.SECRET ?? "your-secret-key";
+import { db } from "../db/db";
+import { users } from "../db/schema";
+import { config } from "../../config";
 
 export const signUp = async (ctx: Context) => {
+  const { username, password } = ctx.request.body;
   try {
-    const { username, password } = ctx.request.body;
     const existingUser = await getUserByUsername(username);
 
     if (existingUser) {
@@ -19,54 +18,59 @@ export const signUp = async (ctx: Context) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const users = await readData();
-    const generatedID = randomUUID();
-    const user = { id: generatedID, username, password: hashedPassword };
 
-    users.push(user);
-    await writeData(users);
+    const newUser = {
+      username,
+      password: hashedPassword,
+    };
 
-    const token = jwt.sign({ id: generatedID, username }, SECRET_KEY, {
-      expiresIn: "30m",
+    const result = (
+      await db
+        .insert(users)
+        .values(newUser)
+        .returning({ id: users.id, username: users.username })
+    )[0];
+
+    const token = jwt.sign({ id: result.id, username }, config.secretKey, {
+      expiresIn: config.tokenExpiration,
     });
+
     ctx.cookies.set("token", token, {
       httpOnly: true,
-      maxAge: 1800000,
+      maxAge: config.cookieMaxAge,
     });
 
     ctx.status = 201;
-    ctx.body = { message: "User registered successfully", user };
+    ctx.body = { message: "User registered successfully", user: result };
   } catch (error) {
+    console.error("Error during sign up:", error);
     ctx.status = 500;
     ctx.body = { error: "Failed to register user" };
-    console.error(error);
   }
 };
 
 export const signIn = async (ctx: Context) => {
+  const { username, password } = ctx.request.body;
   try {
-    const { username, password } = ctx.request.body;
     const user = await getUserByUsername(username);
-
     if (!user || !(await bcrypt.compare(password, user.password))) {
       ctx.status = 401;
       ctx.body = { error: "Invalid credentials" };
       return;
     }
-
-    const token = jwt.sign({ id: user.id, username }, SECRET_KEY, {
-      expiresIn: "30m",
+    const token = jwt.sign({ id: user.id, username }, config.secretKey, {
+      expiresIn: config.tokenExpiration,
     });
-
     ctx.cookies.set("token", token, {
       httpOnly: true,
-      maxAge: 1800000,
+      maxAge: config.cookieMaxAge,
     });
-    ctx.body = { message: "Login successful", user };
+    const { password: userPassword, ...userWithoutPassword } = user;
+    ctx.body = { message: "Login successful", user: userWithoutPassword };
   } catch (error) {
+    console.error("Error during sign in:", error);
     ctx.status = 500;
     ctx.body = { error: "Failed to sign in" };
-    console.error(error);
   }
 };
 
@@ -75,8 +79,8 @@ export const signOut = async (ctx: Context) => {
     ctx.cookies.set("token", null);
     ctx.body = { message: "Logged out successfully" };
   } catch (error) {
+    console.error("Error during sign out:", error);
     ctx.status = 500;
     ctx.body = { error: "Failed to log out" };
-    console.error(error);
   }
 };
