@@ -4,8 +4,7 @@ import { Context } from "koa";
 import { getUserByUsername } from "./userService";
 import { db } from "../db/db";
 import { users } from "../db/schema";
-
-const SECRET_KEY = process.env.SECRET ?? "secret";
+import { config } from "../../config";
 
 export const signUp = async (ctx: Context) => {
   const { username, password } = ctx.request.body;
@@ -32,13 +31,13 @@ export const signUp = async (ctx: Context) => {
         .returning({ id: users.id, username: users.username })
     )[0];
 
-    const token = jwt.sign({ id: result.id, username }, SECRET_KEY, {
-      expiresIn: "30m",
+    const token = jwt.sign({ id: result.id, username }, config.secretKey, {
+      expiresIn: config.tokenExpiration,
     });
 
     ctx.cookies.set("token", token, {
       httpOnly: true,
-      maxAge: 1800000,
+      maxAge: config.cookieMaxAge,
     });
 
     ctx.status = 201;
@@ -59,12 +58,12 @@ export const signIn = async (ctx: Context) => {
       ctx.body = { error: "Invalid credentials" };
       return;
     }
-    const token = jwt.sign({ id: user.id, username }, SECRET_KEY, {
-      expiresIn: "30m",
+    const token = jwt.sign({ id: user.id, username }, config.secretKey, {
+      expiresIn: config.tokenExpiration,
     });
     ctx.cookies.set("token", token, {
       httpOnly: true,
-      maxAge: 1800000,
+      maxAge: config.cookieMaxAge,
     });
     const { password: userPassword, ...userWithoutPassword } = user;
     ctx.body = { message: "Login successful", user: userWithoutPassword };

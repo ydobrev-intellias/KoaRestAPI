@@ -6,7 +6,12 @@ import { eq } from "drizzle-orm";
 export const getPosts = async (ctx: Context) => {
   try {
     const result = await db
-      .select({ id: posts.id, title: posts.title, content: posts.content })
+      .select({
+        id: posts.id,
+        title: posts.title,
+        content: posts.content,
+        userId: posts.userId,
+      })
       .from(posts);
     ctx.status = 200;
     ctx.body = result;
@@ -23,7 +28,12 @@ export const getPostById = async (ctx: Context) => {
   try {
     const result = (
       await db
-        .select({ id: posts.id, title: posts.title, content: posts.content })
+        .select({
+          id: posts.id,
+          title: posts.title,
+          content: posts.content,
+          userId: posts.userId,
+        })
         .from(posts)
         .where(eq(posts.id, postId))
         .limit(1)

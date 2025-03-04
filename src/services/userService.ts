@@ -4,8 +4,7 @@ import jwt from "jsonwebtoken";
 import { db } from "../db/db";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
-
-const SECRET_KEY = process.env.SECRET ?? "secret";
+import { config } from "../../config";
 
 export const getUsers = async (ctx: Context) => {
   try {
@@ -66,13 +65,13 @@ export const updateUser = async (ctx: Context) => {
           id: userId,
           username: updatedData.username || result.username,
         },
-        SECRET_KEY,
-        { expiresIn: "30m" }
+        config.secretKey,
+        { expiresIn: config.tokenExpiration }
       );
 
       ctx.cookies.set("token", token, {
         httpOnly: true,
-        maxAge: 1800000,
+        maxAge: config.cookieMaxAge,
       });
     }
     const { password: resultPassword, ...userWithoutPassword } = result;
@@ -120,7 +119,7 @@ export const getUserByUsername = async (username: string) => {
 
     return result;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return null;
   }
 };

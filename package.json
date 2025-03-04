@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon",
     "start:docker": "docker-compose up",
-    "start:server": "drizzle-kit push && ts-node src/index.ts"
+    "start:server": "drizzle-kit push && ts-node src/index.ts",
+    "clean": "docker compose down --volumes --remove-orphans"
   },
   "keywords": [],
   "author": "",

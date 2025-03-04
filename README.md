@@ -17,9 +17,11 @@ A lightweight REST API built with Koa.js for user authentication and management.
   - Delete a user.
 
 - **Post Management:**
+
   - Fetch all posts (no authentication required).
   - Fetch a post by ID (no authentication required).
   - Create, update, and delete posts (authentication required; only the post owner can update or delete their posts).
+  - **One-to-Many Relationship:** Each user can create multiple posts, but each post belongs to only one user.
 
 ## Technologies Used
 
@@ -131,3 +133,7 @@ A post consists of the following structure:
 | POST   | `/posts`         | Create a new post (authentication required; **do not include id or userId field in the request body**)                             |
 | PATCH  | `/posts/:postId` | Update a post (only the post owner can update, authentication required; **do not include id or userId field in the request body**) |
 | DELETE | `/posts/:postId` | Delete a post (only the post owner can delete, authentication required)                                                            |
+
+## Postman Collection
+
+A Postman collection JSON file is included in the `postman` folder. This file contains predefined requests for all API endpoints and can be imported into Postman for easy testing and interaction with the API.
